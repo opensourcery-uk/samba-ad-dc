@@ -1,0 +1,91 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: samba-ad-dc-dns
+spec:
+  type: ClusterIP
+  clusterIP: 10.96.0.53
+  selector:
+    app: samba-ad-dc
+  ports:
+  - name: dns
+    protocol: UDP
+    port: 53
+    targetPort: 53
+  - name: dns-tcp
+    protocol: TCP
+    port: 53
+    targetPort: 53
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: dc
+spec:
+  selector:
+    matchLabels:
+      app: samba-ad-dc
+  serviceName: samba-ad-dc
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: samba-ad-dc
+      annotations:
+        k8s.v1.cni.cncf.io/networks: samba-ad-dc-static-ip-conf
+    spec:
+      containers:
+      - image: opensourcery/samba-ad-dc:4
+        name: samba-ad-dc
+        env:
+        - name: SAMBA_DOMAIN
+          value: SAMDOM
+        - name: SAMBA_REALM
+          value: SAMDOM.EXAMPLE.COM
+        - name: SAMBA_DOMAIN_PASSWORD
+          value: TEMPORARY_ADMIN_PASSWORD
+        ports:
+        - containerPort: 53
+          name: dns
+          protocol: UDP
+        - containerPort: 53
+          name: dns-tcp
+        - containerPort: 389
+          name: ldap
+        - containerPort: 88
+          name: kerberos
+        - containerPort: 135
+          name: epmap
+        - containerPort: 139
+          name: netbios-ssn
+        - containerPort: 138
+          name: netbios-dgm
+        - containerPort: 445
+          name: microsoft-ds
+        - containerPort: 464
+          name: kpasswd
+        - containerPort: 636
+          name: ldaps
+        - containerPort: 3268
+          name: ldp-glob-catalo
+        - containerPort: 3269
+          name: ldps-glob-cata
+        securityContext:
+          privileged: true
+# Assuming you want to persist the important things between pods, you should define the following
+# and possibly some PersistentVolumeClaims depending on your environment
+#        volumeMounts:
+#        - name: samba-ad-dc-var-lib
+#          mountPath: /var/lib/samba
+#        - name: samba-ad-dc-etc
+#          mountPath: /etc/samba
+#        - name: samba-ad-dc-var-log
+#          mountPath: /var/log/samba
+#      volumes:
+#      - name: samba-ad-dc-var-lib
+#        DEFINE_ME
+#      - name: samba-ad-dc-etc
+#        DEFINE_ME
+#      - name: samba-ad-dc-var-log
+#        DEFINE_ME

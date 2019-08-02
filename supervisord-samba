@@ -1,0 +1,3 @@
+[program:samba]
+command=/usr/sbin/samba -i
+priority=1
