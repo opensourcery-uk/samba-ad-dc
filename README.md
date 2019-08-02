@@ -26,7 +26,7 @@ The best way to do this seems to be using [multus-cni](https://github.com/intel/
 
 Once multus is setup in addition to your existing CNI it's then easy to give your pods a static address on that network
 
-'''yaml
+```yaml
 apiVersion: "k8s.cni.cncf.io/v1"
 kind: NetworkAttachmentDefinition
 metadata:
@@ -46,7 +46,7 @@ spec:
 		]
     }
 }'
-'''
+```
 
 ### Kubernetes
 Once you have a networking setup that will work with Samba it's time to add the samba pod to your Kubernetes cluster
@@ -57,22 +57,22 @@ The obvious things to think about are:
 
 #### Static IP external to the cluster on the network where your Windows machines will live
 The dc StatefulSet resource needs to be told to add the additional network interface to the pods it creates based on the multus config.
-'''yaml
+```yaml
 spec:
   template:
     metadata:
       annotations:
         k8s.v1.cni.cncf.io/networks: samba-ad-dc-static-ip-conf
-'''
+```
 This must match the name of the NetworkAttachmentDefinition that was created in the multus configuration.
 
 #### Static IP internal to the Kubernetes cluster for the DNS part of the container
 In the samba-ad-dc-dns Service resource you need to specify clusterIP. This must be within your serviceSubnet. This exposes bind running in the container to the Kubernetes cluster on a static I address. Eventually you can configure the domain handled by Samba in CoreDNS to hand off to bind within our Samba container so that everything in the Kubernetes cluster can resolve things on the Samba domain
-'''yaml
+```yaml
 spec:
   type: ClusterIP
   clusterIP: 10.96.53.53
-'''
+```
 
 #### Environment variables
 The following environment variables must be configured in the container template section of the dc StatefulSet resource
@@ -81,7 +81,7 @@ The following environment variables must be configured in the container template
 * SAMBA_DOMAIN_PASSWORD - the initial password for the Administrator user. Only used on initial domain controller initialisation. Can be removed afterwards.
 * NET_DEV - the name of the network device that Samba will bind to and use to work out its IP address. If using multus as described above this will likely need to be set to 'net1'
 
-'''yaml
+```yaml
 spec:
    template:
      spec:
@@ -95,7 +95,7 @@ spec:
            value: SAMDOM.EXAMPLE.COM
          - name: SAMBA_DOMAIN_PASSWORD
            value: TEMPORARY_ADMIN_PASSWORD
-'''
+```
 
 #### Persistent Volumes
 Assuming that you want to persist your data, you should define persistent volumes for the following paths within you pods
@@ -104,7 +104,7 @@ Assuming that you want to persist your data, you should define persistent volume
 * /var/log/samba
 
 How you do that is entirely down to your environment. The example template in the Stateful set already references the volumes and their mount points like so:
-'''yaml
+```yaml
          volumeMounts:
          - name: samba-ad-dc-var-lib
            mountPath: /var/lib/samba
@@ -112,17 +112,17 @@ How you do that is entirely down to your environment. The example template in th
            mountPath: /etc/samba
          - name: samba-ad-dc-var-log
            mountPath: /var/log/samba
-'''
+```
 
 So you need to define volumes matching those names or have some auto persistent volume provisioning configured.
 
 ## Building the image and pushing it to a docker registry
 Assuming you have a dockerhub account (or other docker compatible registry) you can simply run the build script
 
-'''bash
+```bash
 # ./build.sh <registry/image_name> [tag]
-'''
+```
 For example
-'''bash
+```bash
 # ./build.sh opensourcery/samba-ad-dc 4
-'''
+```
