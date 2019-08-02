@@ -37,6 +37,7 @@ spec:
     spec:
       containers:
       - image: opensourcery/samba-ad-dc:4
+        imagePullPolicy: Always
         name: samba-ad-dc
         env:
         - name: SAMBA_DOMAIN
