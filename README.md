@@ -51,7 +51,7 @@ spec:
 ### Kubernetes
 Once you have a networking setup that will work with Samba it's time to add the samba pod to your Kubernetes cluster
 
-Take [](The example Kubernetes yaml file and edit it to your needs.)
+Take [/kubernetes/samba-ad-dc.yml](The example Kubernetes yaml file and edit it to your needs.)
 
 The obvious things to think about are:
 
