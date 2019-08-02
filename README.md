@@ -116,6 +116,30 @@ How you do that is entirely down to your environment. The example template in th
 
 So you need to define volumes matching those names or have some auto persistent volume provisioning configured.
 
+#### Configure CoreDNS to hand off your samba domain to the samba bind instance
+Your pods **(including your samba pod)** are configured with the CoreDNS Service IP add their name server.
+
+For DNS resolution of your Samba domain to work you need to tell CoreDNS to hand DNS requests for that domain to Bind in the pod.
+
+Hopefully you setup the samba-ad-dc-dns Seervice resource earlier and remember the IP address that you configured for clusterIP.
+
+You need to adapt the coredns ConfigMap to do that. You need to append the following to the config:
+
+```
+    samdom.example.com:53 {
+       errors
+       cache 30
+       proxy . 10.96.53.53
+    }
+```
+Obviously adjusting things to match your chosen domain, realm and samba-ad-dc-dns Service clusterIP
+
+If you don't do this you'll probably see errors like this in your pod logs
+
+```
+../source4/dsdb/dns/dns_update.c:330: Failed DNS update - with error code 29
+```
+
 ## Building the image and pushing it to a docker registry
 Assuming you have a dockerhub account (or other docker compatible registry) you can simply run the build script
 
