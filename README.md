@@ -139,6 +139,7 @@ If you don't do this you'll probably see errors like this in your pod logs
 ```
 ../source4/dsdb/dns/dns_update.c:330: Failed DNS update - with error code 29
 ```
+Keep in mind that if you want reverse DNS for the subnet(s) on which your domain controller will live, then you also need to hand them off to bind in the same way as the forward zone.
 
 ## Building the image and pushing it to a docker registry
 Assuming you have a dockerhub account (or other docker compatible registry) you can simply run the build script
